@@ -3,7 +3,7 @@ import urllib.parse
 
 
 params = urllib.parse.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
-auth = ''
+
 
 
 def get_list_of_users():
@@ -12,15 +12,14 @@ def get_list_of_users():
     connection.request("GET", "/list")
     response = connection.getresponse()
     print("status: {} and reason: {}".format(response.status, response.reason))
-    print("members are: ")
-    print(response.headers.get("list"))
+    return response.headers.get("list")
 
 
-def send_message(auth):
+def send_message(message, auth):
+    print("send message method")
     headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain", "token": auth,
-               "text": "kiramo bokhor"}
+               "text": message}
     connection = client.HTTPConnection('', 9000)
-    print("fuck1")
     connection.request("POST", "/message", params, headers)
 
 
@@ -30,33 +29,36 @@ def join_chat_request(name):
     connection.request("POST", "/join", params, headers)
     response = connection.getresponse()
     auth = response.headers.get("token")
-    print(auth)
+    print("geted token is: ", auth)
     print(response.status)
     if response.status == 200:
-        send_message(auth)
+        print("you have successfully added to the group")
     else:
-        print("status: {} and reason: {}".format(response.status, response.reason))
-    return
+        print("cant access to the group")
+        return "false"
+    return auth
 
 
 def main():
+    name = input("please enter your username: ")
+    auth = join_chat_request(name)
+    if auth == "false":
+        return
+    print("enter '/info' when ever you want to see active users ")
+    print("enter '/exit' when ever you want leave group ")
     while 1:
-        code = input("enter code: 1 for joining the chat, 2 for getting the list of active members in group, "
-                     "3 fo sending message and 4 for leave the chat: ")
-        code = int(code)
-        if code == 1:
-            name = input("please enter your username: ")
-            join_chat_request(name)
-        elif code == 2:
-            get_list_of_users()
-        elif code == 3:
-            send_message()
-        elif code == 4:
+        message = input()
+        if message == "/info":
+            members = get_list_of_users()
+            print("active members are: ")
+            print(members)
+        elif message == "/exit":
             break
         else:
-            print("wrong code...try again")
+            send_message(message, auth)
 
-    print("you have kicked out of the group chat")
+    print("you have leaved this chat")
+    return
 
 
 main()
